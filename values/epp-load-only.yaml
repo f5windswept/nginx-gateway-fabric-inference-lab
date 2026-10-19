@@ -1,0 +1,24 @@
+inferencePool:
+  modelServers:
+    matchLabels:
+      app: vllm-qwen3-32b
+inferenceExtension:
+  resources:
+    requests: {cpu: 100m, memory: 512Mi}
+    limits: {memory: 2Gi}
+  pluginsConfigFile: custom-plugins.yaml
+  pluginsCustomConfig:
+    custom-plugins.yaml: |
+      apiVersion: inference.networking.x-k8s.io/v1alpha1
+      kind: EndpointPickerConfig
+      plugins:
+      - type: queue-scorer
+      - type: kv-cache-utilization-scorer
+      - type: prefix-cache-scorer
+      - type: metrics-data-source
+      - type: core-metrics-extractor
+      schedulingProfiles:
+      - name: default
+        plugins:
+        - {pluginRef: queue-scorer, weight: 1}
+        - {pluginRef: kv-cache-utilization-scorer, weight: 1}

@@ -1,0 +1,29 @@
+# Lets the EPP validate bearer tokens (TokenReview / SubjectAccessReview)
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: vllm-qwen3-32b-epp-auth-delegator
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: system:auth-delegator}
+subjects:
+- {kind: ServiceAccount, name: vllm-qwen3-32b-epp, namespace: default}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metrics-reader
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: inference-metrics-reader
+rules:
+- nonResourceURLs: ["/metrics"]
+  verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: inference-metrics-reader
+roleRef: {apiGroup: rbac.authorization.k8s.io, kind: ClusterRole, name: inference-metrics-reader}
+subjects:
+- {kind: ServiceAccount, name: metrics-reader, namespace: default}

@@ -1,0 +1,24 @@
+# Model rollout: the same HTTPRoute, but with two InferencePool backends and Gateway API weights.
+# 80% of requests go to the current pool, 20% to the new "v2" pool.
+# Each pool still has its own Endpoint Picker, so inference-aware routing applies inside each pool.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: llm-route
+spec:
+  parentRefs:
+  - name: inference-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /
+    backendRefs:
+    - group: inference.networking.k8s.io
+      kind: InferencePool
+      name: vllm-qwen3-32b
+      weight: 80
+    - group: inference.networking.k8s.io
+      kind: InferencePool
+      name: vllm-qwen3-32b-v2
+      weight: 20

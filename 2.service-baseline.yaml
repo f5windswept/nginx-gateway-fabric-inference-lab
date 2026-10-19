@@ -1,0 +1,14 @@
+# A plain Kubernetes Service that selects exactly the same model server pods as the InferencePool.
+# Used as the "traditional load balancing" baseline: NGINX balances across these endpoints
+# without any knowledge of prompts, KV-cache or queue depth.
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-qwen3-32b-rr
+spec:
+  selector:
+    app: vllm-qwen3-32b
+  ports:
+  - name: http
+    port: 8000
+    targetPort: 8000

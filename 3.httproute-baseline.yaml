@@ -1,0 +1,40 @@
+# Baseline route: /rr/* -> plain Service (no Endpoint Picker)
+#
+# - URLRewrite strips the /rr prefix so the model server still receives /v1/completions
+# - The SnippetsFilter adds an X-Upstream-Addr response header so we can see which pod
+#   NGINX picked (the X-Inference-Pod header is also returned by the simulator itself)
+apiVersion: gateway.nginx.org/v1alpha1
+kind: SnippetsFilter
+metadata:
+  name: upstream-header
+spec:
+  snippets:
+  - context: http.server.location
+    value: add_header X-Upstream-Addr $upstream_addr always;
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: llm-route-baseline
+spec:
+  parentRefs:
+  - name: inference-gateway
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /rr
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /
+    - type: ExtensionRef
+      extensionRef:
+        group: gateway.nginx.org
+        kind: SnippetsFilter
+        name: upstream-header
+    backendRefs:
+    - name: vllm-qwen3-32b-rr
+      port: 8000

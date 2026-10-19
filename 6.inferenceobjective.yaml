@@ -1,0 +1,24 @@
+# InferenceObjectives attach a priority to requests for a given InferencePool.
+# Clients select an objective with the "x-gateway-inference-objective" request header.
+#   priority  > 0 : important traffic, served first
+#   priority  < 0 : "sheddable" traffic, dropped first when the pool is saturated
+#   no header     : priority 0
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceObjective
+metadata:
+  name: premium
+spec:
+  priority: 10
+  poolRef:
+    group: inference.networking.k8s.io
+    name: vllm-qwen3-32b
+---
+apiVersion: inference.networking.x-k8s.io/v1alpha2
+kind: InferenceObjective
+metadata:
+  name: batch
+spec:
+  priority: -10
+  poolRef:
+    group: inference.networking.k8s.io
+    name: vllm-qwen3-32b
